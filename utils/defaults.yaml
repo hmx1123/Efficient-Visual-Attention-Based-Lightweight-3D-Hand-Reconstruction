@@ -19,7 +19,7 @@ MODEL:
   graph_k: 2
   graph_layer_num: 4
 MODEL_PARAM:
-  MODEL_PRETRAIN_PATH: "output/model/exp/hpds_eaa_mini_17.pth"
+  MODEL_PRETRAIN_PATH: "output/model/exp/hpds_eaa_p_lr0p001_bs64_loss11p73_50.pth"
   OPTIM_PATH: "none"
   LrSc_PATH: "none"
 DATASET:
@@ -30,15 +30,16 @@ DATA_AUGMENT:
   UV: 0.0
 TRAIN:
   DIST_PORT: 12345
+  # OPTIM: 'adafactor'
   OPTIM: 'adam'
   current_epoch: 0
   lr_decay_step: 40
   lr_decay_gamma: 0.1
   warm_up: 3
   EPOCHS: 400
-  BATCH_SIZE: 32
-  LR: 1.0e-3
-  dropout: 0.05
+  BATCH_SIZE: 64
+  LR: 1.0e-2
+  dropout: 0.07
 LOSS_WEIGHT:
   AUX:
     DENSEPOSE: 30
@@ -60,5 +61,5 @@ TB:
 SAVE:
   SAVE_GAP: 1
   SAVE_DIR: "./output/model/exp"
-  SAVE_NAME: hpds_eaa_mini_
+  SAVE_NAME: hpds_eaa_p_
 

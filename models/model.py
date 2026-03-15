@@ -25,11 +25,11 @@ class Module(nn.Module):
 
     def forward(self, img):
         hms, mask, dp, img_fmaps, hms_fmaps, mask_fmaps, dp_fmaps = self.encoder(img)
-        global_feature, fmaps, grid_fmaps = self.mid_model(
-            img_fmaps, hms_fmaps, mask_fmaps, dp_fmaps
+        global_feature, fmaps_l, fmaps_r, grid_fmaps_l, grid_fmaps_r = self.mid_model(
+            img_fmaps, hms_fmaps, mask_fmaps, dp_fmaps, mask
         )
         result, paramsDict, handDictList, otherInfo = self.decoder(
-            global_feature, fmaps, grid_fmaps
+            global_feature, fmaps_l, fmaps_r, grid_fmaps_l, grid_fmaps_r
         )
 
         if hms is not None:
@@ -63,11 +63,11 @@ def load_model(cfg):
         state = torch.load(path, map_location="cpu")
         print("load model params from {}".format(path))
         try:
-            model.load_state_dict(state)
+            model.load_state_dict(state, strict=True)
         except:
             state2 = {}
             for k, v in state.items():
-                state2[k[7:]] = v
-            model.load_state_dict(state2, strict=False)
+                state2[k[8:]] = v
+            model.load_state_dict(state2, strict=True)
 
     return model

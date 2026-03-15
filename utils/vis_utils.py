@@ -13,26 +13,17 @@ from utils.utils import projection_batch, get_mano_path, get_dense_color_path
 
 # Data structures and functions for rendering
 from pytorch3d.structures import Meshes
-from pytorch3d.vis.plotly_vis import AxisArgs, plot_batch_individually, plot_scene
-from pytorch3d.vis.texture_vis import texturesuv_image_matplotlib
 from pytorch3d.renderer import (
-    look_at_view_transform,
     PerspectiveCameras,
     OrthographicCameras,
     PointLights,
-    DirectionalLights,
-    Materials,
     RasterizationSettings,
     MeshRenderer,
     MeshRasterizer,
-    SoftPhongShader,
     HardPhongShader,
     TexturesUV,
     TexturesVertex,
-    HardFlatShader,
-    HardGouraudShader,
     AmbientLights,
-    SoftSilhouetteShader
 )
 
 

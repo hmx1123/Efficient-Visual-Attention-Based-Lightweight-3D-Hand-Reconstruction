@@ -171,8 +171,8 @@ class handDataset(Dataset):
         hms = torch.tensor(hms, dtype=torch.float32) / 255
         hms = hms.permute(2, 0, 1)
 
-        img = self.transform(image=img)
-        img = img['image']
+        # img = self.transform(image=img)
+        # img = img['image']
         
         # combined_img = np.hstack((img, img_trans))
         # plt.imshow(combined_img)

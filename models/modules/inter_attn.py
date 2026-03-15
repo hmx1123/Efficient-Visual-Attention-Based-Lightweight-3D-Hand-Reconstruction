@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .EfficientAdditiveAttention import EfficientAdditiveAttnetion
+from .EfficientAdditiveAttention import EfficientAdditiveAttnetion,EfficientSeparableAttention
 from .self_attn import SelfAttn
 
 
@@ -45,14 +45,17 @@ class inter_attn(nn.Module):
             self.L_self_attn_layer = EfficientAdditiveAttnetion(in_dims=f_dim, num_heads=n_heads, dropout=dropout)
             self.R_self_attn_layer = EfficientAdditiveAttnetion(in_dims=f_dim, num_heads=n_heads, dropout=dropout)
             self.inter_attn_layer = EfficientAdditiveAttnetion(in_dims=f_dim, num_heads=n_heads, dropout=dropout)
+        elif atten_tpye=='esa':
+            self.L_self_attn_layer = EfficientSeparableAttention(dim=f_dim, num_heads=n_heads, dropout=dropout)
+            self.R_self_attn_layer = EfficientSeparableAttention(dim=f_dim, num_heads=n_heads, dropout=dropout)
+            self.inter_attn_layer = EfficientSeparableAttention(dim=f_dim, num_heads=n_heads, dropout=dropout)
         elif atten_tpye == "atten":
             self.L_self_attn_layer = SelfAttn(
                 f_dim, n_heads=n_heads, hid_dim=f_dim, dropout=dropout)
             self.R_self_attn_layer = SelfAttn(
                 f_dim, n_heads=n_heads, hid_dim=f_dim, dropout=dropout)
-            self.inter_attn_layer = nn.Sequential(
-                SelfAttn(f_dim, n_heads=n_heads, hid_dim=f_dim, dropout=dropout)
-            )
+            self.inter_attn_layer = SelfAttn(
+                f_dim, n_heads=n_heads, hid_dim=f_dim, dropout=dropout)
         
 
         for m in self.modules():
@@ -66,13 +69,14 @@ class inter_attn(nn.Module):
 
         Lf_res = Lf
         Rf_res = Rf
+        
+        Lf = self.L_self_attn_layer(Lf)
+        Rf = self.R_self_attn_layer(Rf)
 
         feat = torch.cat((Lf, Rf), dim=1)
         feat = self.inter_attn_layer(feat)
-        Lf = feat[:, :V]
-        Rf = feat[:, V:]
+        Lf = feat[:, :V] + Lf_res
+        Rf = feat[:, V:] + Rf_res
 
-        Lf = self.L_self_attn_layer(Lf) + Lf_res
-        Rf = self.R_self_attn_layer(Rf) + Rf_res
 
         return Lf, Rf

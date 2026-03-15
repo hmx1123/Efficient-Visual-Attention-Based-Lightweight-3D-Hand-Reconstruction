@@ -3,7 +3,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .EfficientAdditiveAttention import EfficientAdditiveAttnetion
+from .EfficientAdditiveAttention import (
+    EfficientAdditiveAttnetion,
+    EfficientSeparableAttention,
+)
 from .self_attn import SelfAttn
 from models.modules.InvertedResidual import InvertedResidual, DepthWiseSeparable
 
@@ -13,9 +16,9 @@ from torch import Tensor
 def weights_init(layer):
     classname = layer.__class__.__name__
     # print(classname)
-    if classname.find('Conv2d') != -1:
+    if classname.find("Conv2d") != -1:
         nn.init.xavier_uniform_(layer.weight.data)
-    elif classname.find('Linear') != -1:
+    elif classname.find("Linear") != -1:
         nn.init.xavier_uniform_(layer.weight.data)
         if layer.bias is not None:
             nn.init.constant_(layer.bias.data, 0.0)
@@ -50,26 +53,32 @@ def remap_uv(feat: Tensor, uv_coord: Tensor) -> Tensor:
     """
     uv_coord = torch.clamp((uv_coord), -1, 1)  # [N, J, 2], range ~ [-1, 1]
     uv_coord = uv_coord.unsqueeze(2)  # [N, J, 1, 2]
-    select_feat = F.grid_sample(
-        feat, uv_coord, align_corners=True)  # [N, C, J, 1]
+    select_feat = F.grid_sample(feat, uv_coord, align_corners=True)  # [N, C, J, 1]
     select_feat = select_feat.permute((0, 2, 1, 3))
     select_feat = select_feat[:, :, :, 0]
     return select_feat
 
 
 class img_feat_to_grid(nn.Module):
-    def __init__(self, img_size, img_f_dim, grid_size, grid_f_dim, n_heads=4, dropout=0.01):
+    def __init__(
+        self, img_size, img_f_dim, grid_size, grid_f_dim, n_heads=4, dropout=0.01
+    ):
         super().__init__()
         self.img_f_dim = img_f_dim
         self.img_size = img_size
         self.grid_f_dim = grid_f_dim
         self.grid_size = grid_size
-        self.position_embeddings = nn.Embedding(
-            grid_size * grid_size, grid_f_dim)
+        self.position_embeddings = nn.Embedding(grid_size * grid_size, grid_f_dim)
 
         patch_size = img_size // grid_size
         self.proj = DepthWiseSeparable(
-            img_f_dim, grid_f_dim, kernel=patch_size, stride=patch_size, padding=0, e=0.25)
+            img_f_dim,
+            grid_f_dim,
+            kernel=patch_size,
+            stride=patch_size,
+            padding=0,
+            e=0.25,
+        )
 
     def forward(self, img):
         bs = img.shape[0]
@@ -84,18 +93,32 @@ class img_feat_to_grid(nn.Module):
 
 
 class img_attn(nn.Module):
-    def __init__(self, verts_f_dim, img_f_dim, n_heads=4, d_q=None, d_v=None, dropout=0.1, atten_tpye='eaa'):
+    def __init__(
+        self,
+        verts_f_dim,
+        img_f_dim,
+        n_heads=4,
+        d_q=None,
+        d_v=None,
+        dropout=0.1,
+        atten_tpye="eaa",
+    ):
         super().__init__()
         self.img_f_dim = img_f_dim
         self.verts_f_dim = verts_f_dim
 
         self.fc = nn.Linear(img_f_dim, verts_f_dim)
-        if atten_tpye == 'eaa':
-            self.Attn = EfficientAdditiveAttnetion(in_dims=verts_f_dim, num_heads=n_heads, dropout=dropout)
-        elif atten_tpye == 'atten':
-            self.Attn = nn.Sequential(
-                SelfAttn(verts_f_dim, n_heads=n_heads,
-                         hid_dim=verts_f_dim, dropout=dropout)
+        if atten_tpye == "eaa":
+            self.Attn = EfficientAdditiveAttnetion(
+                in_dims=verts_f_dim, num_heads=n_heads, dropout=dropout
+            )
+        elif atten_tpye == "esa":
+            self.Attn = EfficientSeparableAttention(
+                dim=f_dim, num_heads=n_heads, dropout=dropout
+            )
+        elif atten_tpye == "atten":
+            self.Attn = SelfAttn(
+                verts_f_dim, n_heads=n_heads, hid_dim=verts_f_dim, dropout=dropout
             )
 
     def forward(self, verts_f, img_f):
@@ -107,23 +130,33 @@ class img_attn(nn.Module):
 
         x = torch.cat([verts_f, img_f], dim=1)
         x = self.Attn(x)
-        verts_f = verts_f + x[:, :verts_f.shape[1]]
+        verts_f = verts_f + x[:, : verts_f.shape[1]]
 
         return verts_f
 
 
 class img_ex(nn.Module):
-    def __init__(self, img_size, img_f_dim,
-                 grid_size, grid_f_dim,
-                 verts_f_dim,
-                 n_heads=4,
-                 dropout=0.01,
-                 atten_tpye='eaa'):
+    def __init__(
+        self,
+        img_size,
+        img_f_dim,
+        grid_size,
+        grid_f_dim,
+        verts_f_dim,
+        n_heads=4,
+        dropout=0.01,
+        atten_tpye="eaa",
+    ):
         super().__init__()
         self.verts_f_dim = verts_f_dim
         # self.encoder = img_feat_to_grid(img_size, img_f_dim, grid_size, grid_f_dim, n_heads, dropout)
-        self.attn = img_attn(verts_f_dim, grid_f_dim,
-                             n_heads=n_heads, dropout=dropout, atten_tpye=atten_tpye)
+        self.attn = img_attn(
+            verts_f_dim,
+            grid_f_dim,
+            n_heads=n_heads,
+            dropout=dropout,
+            atten_tpye=atten_tpye,
+        )
 
         for m in self.modules():
             weights_init(m)

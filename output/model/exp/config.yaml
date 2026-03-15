@@ -53,24 +53,24 @@ MODEL:
   graph_layer_num: 4
 MODEL_PARAM:
   LrSc_PATH: none
-  MODEL_PRETRAIN_PATH: output/model/exp/hpds_eaa_mini_17.pth
+  MODEL_PRETRAIN_PATH: output/model/exp/hpds_eaa_p_lr0p001_bs64_loss11p73_50.pth
   OPTIM_PATH: none
 SAVE:
   SAVE_DIR: ./output/model/exp
   SAVE_GAP: 1
-  SAVE_NAME: hpds_eaa_mini_
+  SAVE_NAME: hpds_eaa_p_
 SEED: 25
 TB:
   SAVE_DIR: ./output/log/exp
   SHOW_GAP: 200
 TRAIN:
-  BATCH_SIZE: 32
+  BATCH_SIZE: 64
   DIST_PORT: 12345
   EPOCHS: 400
-  LR: 0.001
+  LR: 0.01
   OPTIM: adam
   current_epoch: 0
-  dropout: 0.05
+  dropout: 0.07
   lr_decay_gamma: 0.1
   lr_decay_step: 40
   warm_up: 3

@@ -7,9 +7,9 @@ import numpy as np
 def weights_init(layer):
     classname = layer.__class__.__name__
     # print(classname)
-    if classname.find('Conv2d') != -1:
+    if classname.find("Conv2d") != -1:
         nn.init.xavier_uniform_(layer.weight.data)
-    elif classname.find('Linear') != -1:
+    elif classname.find("Linear") != -1:
         nn.init.xavier_uniform_(layer.weight.data)
         if layer.bias is not None:
             nn.init.constant_(layer.bias.data, 0.0)
@@ -25,8 +25,8 @@ def sparse_python_to_torch(sp_python):
     L_data = torch.from_numpy(L_data)
     L_data = L_data.type(torch.FloatTensor)
     L = torch.sparse_coo_tensor(indices, L_data, torch.Size(L.shape))
-#     if torch.cuda.is_available():
-#         L = L.cuda()
+    #     if torch.cuda.is_available():
+    #         L = L.cuda()
 
     return L
 
@@ -72,18 +72,16 @@ def graph_conv_cheby(x, cl, L, K=3):
 class GCN_ResBlock(nn.Module):
     # x______________conv + norm (optianal)_____________ x ____activate
     #  \____conv____activate____norm____conv____norm____/
-    def __init__(self, in_dim, out_dim, mid_dim,
-                 graph_L, graph_k,
-                 drop_out=0.01):
+    def __init__(self, in_dim, out_dim, mid_dim, graph_L, graph_k, drop_out=0.01):
         super(GCN_ResBlock, self).__init__()
         if isinstance(graph_L, np.ndarray):
-            self.register_buffer('graph_L',
-                                 torch.from_numpy(graph_L).float(),
-                                 persistent=False)
+            self.register_buffer(
+                "graph_L", torch.from_numpy(graph_L).float(), persistent=False
+            )
         else:
-            self.register_buffer('graph_L',
-                                 sparse_python_to_torch(graph_L).to_dense(),
-                                 persistent=False)
+            self.register_buffer(
+                "graph_L", sparse_python_to_torch(graph_L).to_dense(), persistent=False
+            )
 
         self.graph_k = graph_k
         self.in_dim = in_dim
@@ -111,20 +109,26 @@ class GCN_ResBlock(nn.Module):
 
 
 class GraphLayer(nn.Module):
-    def __init__(self,
-                 in_dim=256,
-                 out_dim=256,
-                 graph_L=None,
-                 graph_k=2,
-                 graph_layer_num=3,
-                 drop_out=0.01):
+    def __init__(
+        self,
+        in_dim=256,
+        out_dim=256,
+        graph_L=None,
+        graph_k=2,
+        graph_layer_num=3,
+        drop_out=0.01,
+    ):
         super().__init__()
         assert graph_k > 1
 
         self.GCN_blocks = nn.ModuleList()
-        self.GCN_blocks.append(GCN_ResBlock(in_dim, out_dim, out_dim, graph_L, graph_k, drop_out))
+        self.GCN_blocks.append(
+            GCN_ResBlock(in_dim, out_dim, out_dim, graph_L, graph_k, drop_out)
+        )
         for i in range(graph_layer_num - 1):
-            self.GCN_blocks.append(GCN_ResBlock(out_dim, out_dim, out_dim, graph_L, graph_k, drop_out))
+            self.GCN_blocks.append(
+                GCN_ResBlock(out_dim, out_dim, out_dim, graph_L, graph_k, drop_out)
+            )
 
         for m in self.modules():
             weights_init(m)

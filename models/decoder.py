@@ -53,7 +53,7 @@ class decoder(nn.Module):
         num_attn_heads=4,
         upsample_weight=None,
         dropout=0.05,
-        atten_type='eaa'
+        atten_type="eaa",
     ):
         super(decoder, self).__init__()
         assert len(f_in_Dim) == 4
@@ -102,28 +102,28 @@ class decoder(nn.Module):
             grid_f_dim=[256, 256, 256],
             n_heads=num_attn_heads,
             dropout=dropout,
-            atten_type=atten_type
+            atten_type=atten_type,
         )
 
         self.unsample_layer = nn.Linear(self.vNum_out, self.vNum_mano, bias=False)
 
-        self.coord_head = nn.Linear(self.gcn_out_dim[-1], 3)
-        self.avg_head = nn.Linear(self.vNum_out, 1)
-        self.params_head = nn.Linear(self.gcn_out_dim[-1], 3)
+        self.coord_avg_head = nn.AvgPool1d(kernel_size=21, stride=21)
+        self.params_head = nn.Linear(252, 3)
         self.layer_for_global_l = nn.Sequential(
-            nn.Conv2d(256, self.vNum_in, 1),
+            nn.Conv2d(192, self.vNum_in, 1),
             nn.Flatten(start_dim=-2, end_dim=-1),
             nn.GELU(),
             nn.Linear(64, self.gcn_in_dim[0]),
             nn.LayerNorm(self.gcn_in_dim[0]),
         )
         self.layer_for_global_r = nn.Sequential(
-            nn.Conv2d(256, self.vNum_in, 1),
+            nn.Conv2d(192, self.vNum_in, 1),
             nn.Flatten(start_dim=-2, end_dim=-1),
             nn.GELU(),
             nn.Linear(64, self.gcn_in_dim[0]),
             nn.LayerNorm(self.gcn_in_dim[0]),
         )
+        self.graph_upsample=nn.Upsample(size=1008)
 
         for m in self.modules():
             weights_init(m)
@@ -139,23 +139,23 @@ class decoder(nn.Module):
     def get_upsample_weight(self):
         return self.unsample_layer.weight.data
 
-    def forward(self, global_feature, fmaps, grid_fmaps):
+    def forward(self, global_feature, fmaps_l, fmaps_r, grid_fmaps_l, grid_fmaps_r):
         assert global_feature.shape[1] == self.gf_dim
 
-        Lf = self.layer_for_global_l(fmaps[0])
-        Rf = self.layer_for_global_r(fmaps[0])
-        grid_fmaps_l = grid_fmaps[1:]
-        grid_fmaps_r = grid_fmaps[1:]
+        Lf = self.layer_for_global_l(fmaps_l[0])
+        Rf = self.layer_for_global_r(fmaps_r[0])
+        grid_fmaps_l = grid_fmaps_l[1:]
+        grid_fmaps_r = grid_fmaps_r[1:]
 
         Lf, Rf = self.dual_gcn(Lf, Rf, grid_fmaps_l, grid_fmaps_r)
 
         scale = {}
         trans2d = {}
-        temp = self.avg_head(Lf.transpose(-1, -2))[..., 0]
+        temp = Lf[:, :, -1]
         temp = self.params_head(temp)
         scale["left"] = temp[:, 0]
         trans2d["left"] = temp[:, 1:]
-        temp = self.avg_head(Rf.transpose(-1, -2))[..., 0]
+        temp = Rf[:, :, -1]
         temp = self.params_head(temp)
         scale["right"] = temp[:, 0]
         trans2d["right"] = temp[:, 1:]
@@ -163,7 +163,7 @@ class decoder(nn.Module):
         handDictList = []
 
         paramsDict = {"scale": scale, "trans2d": trans2d}
-        verts3d = {"left": self.coord_head(Lf), "right": self.coord_head(Rf)}
+        verts3d = {"left": self.coord_avg_head(Lf), "right": self.coord_avg_head(Rf)}
         verts2d = {}
         result = {"verts3d": {}, "verts2d": {}}
         for hand_type in ["left", "right"]:
@@ -190,12 +190,16 @@ class decoder(nn.Module):
         for i in range(len(handDictList)):
             for hand_type in ["left", "right"]:
                 v = handDictList[i]["verts3d"][hand_type]
-                v = graph_upsample(v, p=self.vNum_all // v.shape[1])
+                v = v.permute(0, 2, 1).contiguous() 
+                v = self.graph_upsample(v)
+                v = v.permute(0, 2, 1).contiguous() 
                 otherInfo["verts3d_MANO_list"][hand_type].append(
                     self.converter[hand_type].GCN_to_vert(v)
                 )
                 v = handDictList[i]["verts2d"][hand_type]
-                v = graph_upsample(v, p=self.vNum_all // v.shape[1])
+                v = v.permute(0, 2, 1).contiguous() 
+                v = self.graph_upsample(v)
+                v = v.permute(0, 2, 1).contiguous() 
                 otherInfo["verts2d_MANO_list"][hand_type].append(
                     self.converter[hand_type].GCN_to_vert(v)
                 )
