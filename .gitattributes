@@ -1,5 +1,15 @@
 *.pth filter=lfs diff=lfs merge=lfs -text
 *.out filter=lfs diff=lfs merge=lfs -text
 **/__pycache__/
-**/misc/
-**/.vscode/
+
+.vscode/
+misc/
+new.py
+nohup.out
+output/
+remove_pth.py
+run_evals.out
+run_evals.sh
+see_pth.py
+test.py
+test00.py
