@@ -17,7 +17,7 @@ MODEL:
   graph_k: 2
   graph_layer_num: 4
 MODEL_PARAM:
-  MODEL_PRETRAIN_PATH: "output/model/exp/hpds_eaa_distillation_107.pth"
+  MODEL_PRETRAIN_PATH: "misc/hpds_eaa_best.pth"
   OPTIM_PATH: "none"
   LrSc_PATH: "none"
 DATASET:
@@ -58,5 +58,5 @@ TB:
 SAVE:
   SAVE_GAP: 1
   SAVE_DIR: "./output/model/exp"
-  SAVE_NAME: hpds_eaa_pppp_
+  SAVE_NAME: hpds_eaa_
 

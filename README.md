@@ -38,8 +38,9 @@ CVPR 2022 (Oral)
 
 ### Pre-trained model and data
 
-- Download  necessary assets (including the pre-trained models) from [misc.tar.gz](https://github.com/Dw1010/IntagHand/releases/download/v0.0/misc.tar.gz) and unzip it.
+- Download  necessary assets (including the pre-trained models) from [misc.zip](https://pan.baidu.com/s/12OqJi6hpCUSW7PcODILpWQ?pwd=92dw) and unzip it.
 - Register and download [MANO](https://mano.is.tue.mpg.de/)  data. Put `MANO_LEFT.pkl` and `MANO_RIGHT.pkl` in `misc/mano`
+
 
 After collecting the above necessary files, the directory structure of `./misc` is expected as follows:
 
@@ -50,8 +51,7 @@ After collecting the above necessary files, the directory structure of `./misc` 
 │   └── MANO_RIGHT.pkl
 ├── model
 │   └── config.yaml
-│   └── interhand.pth
-│   └── wild_demo.pth
+│   └── hpds_eaa_best.pth
 ├── graph_left.pkl
 ├── graph_right.pkl
 ├── upsample.pkl
@@ -106,7 +106,7 @@ to train model on 4 GPUs.
 
 2. Process the dataset by :
 ```
-python dataset/interhand.py --data_path PATH_OF_INTERHAND2.6M --save_path ./interhand2.6m/
+python dataset/interhand.py --data_path PATH_OF_INTERHAND2.6M --save_path ./interhand2.6m/ --model ./misc/hpds_eaa_best.pth
 ```
 Replace `PATH_OF_INTERHAND2.6M` with your own store path of [InterHand2.6M](https://mks0601.github.io/InterHand2.6M/) dataset. 
 
