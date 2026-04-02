@@ -106,24 +106,26 @@ to train model on 4 GPUs.
 
 2. Process the dataset by :
 ```
-python dataset/interhand.py --data_path PATH_OF_INTERHAND2.6M --save_path ./interhand2.6m/ --model ./misc/hpds_eaa_best.pth
+python dataset/interhand.py --data_path PATH_OF_INTERHAND2.6M --save_path ./interhand2.6m/
 ```
 Replace `PATH_OF_INTERHAND2.6M` with your own store path of [InterHand2.6M](https://mks0601.github.io/InterHand2.6M/) dataset. 
 
 3. Run evaluation:
 ```
-python apps/eval_interhand.py --data_path ./interhand2.6m/
+python apps/eval_interhand.py --data_path ./interhand2.6m/ --model ./misc/hpds_eaa_ppp_best.pth
 ```
 
 You would get following output :
 
 ```
 joint mean error:
-    left: 8.93425289541483 mm, right: 8.663229644298553 mm
-    all: 8.798741269856691 mm
+    left: 9.097068570554256 mm
+    right: 8.561082184314728 mm
+    all: 8.829075377434492 mm
 vert mean error:
-    left: 9.173248894512653 mm, right: 8.890160359442234 mm
-    all: 9.031704626977444 mm
+    left: 9.311042726039886 mm
+    right: 8.786577731370926 mm
+    all: 9.048810228705406 mm
 ```
 
 
