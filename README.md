@@ -133,17 +133,5 @@ vert mean error:
 
 The pytorch implementation of MANO is based on [manopth](https://github.com/hassony2/manopth). The GCN network is based on [hand-graph-cnn](https://github.com/3d-hand-shape/hand-graph-cnn). The heatmap generation and inference is based on [DarkPose](https://github.com/ilovepose/DarkPose). We thank the authors for their great job!
 
-## Citation
 
-If you find the code useful in your research, please consider citing the paper.
-
-```
-@inproceedings{Li2022intaghand,
-title={Interacting Attention Graph for Single Image Two-Hand Reconstruction},
-author={Li, Mengcheng and An, Liang and Zhang, Hongwen and Wu, Lianpeng and Chen, Feng and Yu, Tao and Liu, Yebin},
-booktitle={IEEE/CVF Conf. on Computer Vision and Pattern Recognition (CVPR)},
-month=jun,
-year={2022},
-}
-```
 
