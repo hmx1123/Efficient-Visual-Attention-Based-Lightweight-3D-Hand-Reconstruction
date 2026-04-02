@@ -1,20 +1,8 @@
-# IntagHand
+# InterHand
 
-This repository contains a pytorch implementation of "[Interacting Attention Graph for Single Image Two-Hand Reconstruction](http://www.liuyebin.com/IntagHand/Intaghand.html)". 
+This repository contains a pytorch implementation of "[Efficient-Visual-Attention-Based-Lightweight-3D-Hand-Reconstruction]". 
 
-Mengcheng Li, [Liang An](https://anl13.github.io), [Hongwen Zhang](https://hongwenzhang.github.io), Lianpeng Wu, Feng Chen, [Tao Yu](http://ytrock.com/), [Yebin Liu](http://www.liuyebin.com/)
-
-Tsinghua University & Hisense Inc.
-
-CVPR 2022 (Oral)
-
-
-
-**2023.02.02 Update: add an example of training code**
-
-
-
-![pic](http://www.liuyebin.com/IntagHand/assets/results2.png)
+![pic]()
 
 ## Requirements
 
