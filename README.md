@@ -4,6 +4,12 @@ This repository contains a pytorch implementation of "[Efficient-Visual-Attentio
 
 ![pic]()
 
+$Minxuan\; Hu^{1*}, Wenji\; Yang^{2*}$
+
+$^{1}\;School\;of\;Computer\;and\;Information\;Engineering,\;Jiangxi\;Agricultural\;University,\;Jiangxi\;330045,\;China$
+
+$^{2}\;School\;of\;Software,\;Jiangxi\;Agricultural\;University,\;Jiangxi\;330045,\;China$
+
 ## Requirements
 
 - Tested with python3.7 on Ubuntu 16.04, CUDA 10.2.
